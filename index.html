@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Biología · 4to Sec · 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Lora:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde: #1a6b3a;
+    --verde-claro: #2d9e58;
+    --verde-suave: #e8f5ee;
+    --fondo: #f0f7f2;
+    --texto: #0f2e1a;
+    --blanco: #ffffff;
+    --rojo: #e03535;
+    --amarillo-bg: #fdf6e3;
+    --amarillo-borde: #c9a227;
+    --sombra: 0 4px 24px rgba(26,107,58,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--fondo);
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 24px 16px 48px;
+    background-image: radial-gradient(circle at 20% 10%, #c8ecd6 0%, transparent 40%),
+                      radial-gradient(circle at 80% 90%, #b6e0c8 0%, transparent 40%);
+  }
+  header { text-align: center; margin-bottom: 28px; animation: fadeDown 0.6s ease both; }
+  .badge {
+    display: inline-block; background: var(--verde); color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 10px;
+  }
+  h1 { font-size: clamp(26px, 6vw, 40px); font-weight: 900; color: var(--verde); line-height: 1.1; }
+  h1 span { font-family: 'Lora', serif; font-style: italic; color: var(--verde-claro); }
+  .subtitulo { color: #557a62; font-size: 15px; margin-top: 6px; }
+
+  .progreso-wrap { width: 100%; max-width: 620px; margin-bottom: 20px; }
+  .progreso-info { display: flex; justify-content: space-between; font-size: 13px; color: #557a62; font-weight: 600; margin-bottom: 6px; }
+  .barra-fondo { background: #cde8d7; border-radius: 99px; height: 8px; overflow: hidden; }
+  .barra-relleno { height: 100%; background: linear-gradient(90deg, var(--verde-claro), var(--verde)); border-radius: 99px; transition: width 0.5s ease; }
+
+  .tarjeta {
+    background: var(--blanco); border-radius: 24px;
+    box-shadow: var(--sombra); padding: 28px 24px;
+    width: 100%; max-width: 620px; animation: slideUp 0.5s ease both;
+  }
+  .num-pregunta { font-size: 12px; font-weight: 700; color: var(--verde-claro); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
+  .pregunta-texto { font-size: clamp(16px, 3.5vw, 20px); font-weight: 700; color: var(--texto); line-height: 1.45; margin-bottom: 22px; }
+
+  .opciones { display: flex; flex-direction: column; gap: 10px; }
+  .opcion {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 13px 16px; border: 2px solid #cde8d7; border-radius: 14px;
+    cursor: pointer; font-size: 14px; font-weight: 600; color: var(--texto);
+    background: var(--blanco); text-align: left; width: 100%; transition: all 0.2s;
+  }
+  .opcion:hover:not(:disabled) { border-color: var(--verde-claro); background: var(--verde-suave); }
+  .opcion:disabled { cursor: default; }
+  .opcion .letra {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--verde-suave);
+    color: var(--verde); font-weight: 700; font-size: 12px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .opcion.correcta { border-color: var(--verde-claro); background: #e3f5ea; }
+  .opcion.correcta .letra { background: var(--verde-claro); color: #fff; }
+  .opcion.incorrecta { border-color: var(--rojo); background: #fdeaea; }
+  .opcion.incorrecta .letra { background: var(--rojo); color: #fff; }
+  .opcion.mostrar-correcta { border-color: var(--verde-claro); background: #e3f5ea; }
+  .opcion.mostrar-correcta .letra { background: var(--verde-claro); color: #fff; }
+
+  .feedback {
+    margin-top: 16px; padding: 12px 16px; border-radius: 12px;
+    font-size: 13px; line-height: 1.5; display: none;
+  }
+  .feedback.visible { display: block; }
+  .feedback.correcto { background: #e3f5ea; color: #1a6b3a; border-left: 4px solid var(--verde-claro); }
+  .feedback.incorrecto { background: #fdeaea; color: #9b1c1c; border-left: 4px solid var(--rojo); }
+
+  .btn-siguiente {
+    display: none; margin-top: 18px; width: 100%; padding: 14px;
+    background: var(--verde); color: #fff; border: none; border-radius: 14px;
+    font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-siguiente:hover { background: var(--verde-claro); transform: translateY(-1px); }
+  .btn-siguiente.visible { display: block; }
+
+  .status-envio {
+    margin-top: 12px; padding: 10px 14px; border-radius: 10px;
+    font-size: 13px; text-align: center; font-weight: 600; display: none;
+  }
+  .status-envio.visible { display: block; }
+  .status-envio.enviando { background: var(--amarillo-bg); color: var(--amarillo-borde); }
+  .status-envio.enviado { background: #e3f5ea; color: var(--verde); }
+  .status-envio.error { background: #fdeaea; color: #9b1c1c; }
+
+  .leaderboard { margin-top: 20px; }
+  .lb-titulo { font-size: 15px; font-weight: 700; color: var(--verde); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .lb-fila {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 0; border-bottom: 1px solid #e4f0e8; font-size: 14px;
+  }
+  .lb-fila:last-child { border-bottom: none; }
+  .lb-rank { min-width: 28px; font-size: 13px; font-weight: 700; color: #557a62; }
+  .lb-nombre { flex: 1; color: var(--texto); }
+  .lb-puntaje { font-weight: 700; color: var(--verde); }
+  .lb-fecha { font-size: 11px; color: #889e8e; }
+  .lb-yo { background: var(--verde-suave); border-radius: 8px; padding: 2px 8px; }
+  .lb-vacio { font-size: 13px; color: #889e8e; text-align: center; padding: 12px 0; }
+
+  .nombre-card { background: var(--blanco); border-radius: 24px; box-shadow: var(--sombra); padding: 28px 24px; width: 100%; max-width: 620px; margin-bottom: 16px; }
+  .nombre-card label { font-size: 14px; color: #557a62; display: block; margin-bottom: 8px; font-weight: 600; }
+  .nombre-card input {
+    width: 100%; font-size: 16px; padding: 12px 14px;
+    border: 2px solid #cde8d7; border-radius: 12px;
+    font-family: 'Outfit', sans-serif; color: var(--texto);
+    outline: none; transition: border-color 0.2s;
+  }
+  .nombre-card input:focus { border-color: var(--verde-claro); }
+
+  .resultado { display: none; width: 100%; max-width: 620px; animation: slideUp 0.5s ease both; }
+  .resultado.visible { display: block; }
+  .resultado-tarjeta { background: var(--blanco); border-radius: 24px; box-shadow: var(--sombra); padding: 36px 24px; text-align: center; }
+  .emoji-res { font-size: 56px; display: block; margin-bottom: 12px; }
+  .res-titulo { font-size: 26px; font-weight: 900; color: var(--verde); margin-bottom: 6px; }
+  .res-sub { font-family: 'Lora', serif; font-style: italic; color: #557a62; font-size: 15px; margin-bottom: 24px; }
+  .puntuacion { font-size: 56px; font-weight: 900; color: var(--verde); line-height: 1; }
+  .puntuacion span { font-size: 24px; color: #557a62; }
+  .desglose { display: flex; justify-content: center; gap: 28px; margin: 20px 0; }
+  .desglose-item { text-align: center; }
+  .desglose-num { font-size: 26px; font-weight: 900; }
+  .desglose-lbl { font-size: 11px; color: #557a62; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .verde-num { color: var(--verde-claro); }
+  .rojo-num { color: var(--rojo); }
+  .barra-res { height: 8px; background: #cde8d7; border-radius: 99px; overflow: hidden; margin: 12px 0 24px; }
+  .barra-res-fill { height: 100%; background: linear-gradient(90deg, var(--verde-claro), var(--verde)); border-radius: 99px; transition: width 1s ease 0.3s; }
+  .btn-reiniciar {
+    padding: 14px 32px; background: var(--verde); color: #fff;
+    border: none; border-radius: 14px; font-family: 'Outfit', sans-serif;
+    font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 8px;
+  }
+  .btn-reiniciar:hover { background: var(--verde-claro); transform: translateY(-1px); }
+
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:none; } }
+  @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">🌿 Biología · 4to Secundaria</div>
+  <h1>Cuestionario de <span>Biología</span></h1>
+  <p class="subtitulo">I Bimestre 2026 · 10 preguntas</p>
+</header>
+
+<!-- Pantalla inicio -->
+<div id="inicio" style="width:100%;max-width:620px;">
+  <div class="nombre-card">
+    <label for="nombre-input">Ingresa tu nombre completo</label>
+    <input type="text" id="nombre-input" placeholder="Ej: María López Pérez" autocomplete="name" />
+  </div>
+  <button class="btn-siguiente visible" style="max-width:620px;width:100%;" onclick="iniciarQuiz()">Comenzar quiz →</button>
+</div>
+
+<!-- Barra de progreso -->
+<div class="progreso-wrap" id="progreso-wrap" style="display:none;">
+  <div class="progreso-info">
+    <span id="progreso-texto">Pregunta 1 de 10</span>
+    <span id="progreso-pct">0%</span>
+  </div>
+  <div class="barra-fondo"><div class="barra-relleno" id="barra"></div></div>
+</div>
+
+<!-- Tarjeta de pregunta -->
+<div class="tarjeta" id="tarjeta-quiz" style="display:none;">
+  <div class="num-pregunta" id="num-pregunta">PREGUNTA 1</div>
+  <div class="pregunta-texto" id="pregunta-texto"></div>
+  <div class="opciones" id="opciones"></div>
+  <div class="feedback" id="feedback"></div>
+  <button class="btn-siguiente" id="btn-siguiente" onclick="siguiente()">Siguiente →</button>
+</div>
+
+<!-- Resultado -->
+<div class="resultado" id="resultado">
+  <div class="resultado-tarjeta">
+    <span class="emoji-res" id="emoji-res">🎉</span>
+    <div class="res-titulo" id="res-titulo">¡Excelente!</div>
+    <div class="res-sub" id="res-sub">Muy buen desempeño</div>
+    <div class="puntuacion" id="puntuacion">0<span>/10</span></div>
+    <div class="barra-res"><div class="barra-res-fill" id="barra-res" style="width:0%"></div></div>
+    <div class="desglose">
+      <div class="desglose-item"><div class="desglose-num verde-num" id="num-correctas">0</div><div class="desglose-lbl">Correctas</div></div>
+      <div class="desglose-item"><div class="desglose-num rojo-num" id="num-incorrectas">0</div><div class="desglose-lbl">Incorrectas</div></div>
+    </div>
+    <div class="status-envio" id="status-envio"></div>
+    <div class="leaderboard">
+      <div class="lb-titulo">🏆 Ranking de la clase</div>
+      <div id="leaderboard-lista"></div>
+    </div>
+    <button class="btn-reiniciar" onclick="reiniciar()">🔄 Intentar de nuevo</button>
+  </div>
+</div>
+
+<script>
+  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxGcpcCdxChhVzUcqDR4y0n2HsCV6aYAQdGHZoGaMdmqDhojRQzPBVQzIsrTD3TfBiY-w/exec';
+
+  const preguntas = [
+    { p: "Un estudiante utiliza un microscopio para observar células sanguíneas y tejidos que no pueden verse a simple vista. ¿Qué división de la anatomía realiza este tipo de estudio?", opts: ["Anatomía macroscópica","Anatomía patológica","Anatomía microscópica","Embriología"], ans: 2, exp: "La anatomía microscópica estudia estructuras no visibles a simple vista, como células y tejidos, usando el microscopio." },
+    { p: "Cuando una persona presenta fiebre intensa, el organismo intenta recuperar el equilibrio interno mediante diversos mecanismos. ¿Cómo se denomina este equilibrio corporal?", opts: ["Metabolismo","Adaptación","Homeostasis","Irritabilidad"], ans: 2, exp: "La homeostasis es la capacidad del organismo de mantener estables sus condiciones internas ante cambios del ambiente." },
+    { p: "Un médico examina los pulmones y el corazón dentro de la región donde se alojan estos órganos. ¿En qué cavidad corporal se encuentran?", opts: ["Cavidad torácica","Cavidad abdominal","Cavidad craneal","Cavidad pélvica"], ans: 0, exp: "La cavidad torácica aloja los pulmones y el corazón, protegida por las costillas y el esternón." },
+    { p: "Según la teoría celular propuesta por Virchow, la unidad básica estructural de los seres vivos es:", opts: ["El tejido","La célula","El órgano","El núcleo"], ans: 1, exp: "Virchow estableció que la célula es la unidad básica de todos los seres vivos y que toda célula proviene de otra célula." },
+    { p: "Los eritrocitos tienen como función principal:", opts: ["Defender el organismo","Transportar oxígeno","Producir anticuerpos","Coagular sangre"], ans: 1, exp: "Los eritrocitos contienen hemoglobina, que transporta oxígeno desde los pulmones a todos los tejidos del cuerpo." },
+    { p: "Los leucocitos participan principalmente en:", opts: ["La coagulación","El transporte de nutrientes","La defensa del organismo","La producción hormonal"], ans: 2, exp: "Los leucocitos forman parte del sistema inmunológico y destruyen microorganismos y células infectadas." },
+    { p: "Las plaquetas intervienen directamente en:", opts: ["La coagulación","La digestión","La respiración","La inmunidad celular"], ans: 0, exp: "Las plaquetas se activan ante una herida y participan en la formación del coágulo para detener el sangrado." },
+    { p: "La neurona es importante porque:", opts: ["Transmite impulsos nerviosos","Transporta oxígeno","Produce sangre","Forma hueso"], ans: 0, exp: "La neurona es la célula funcional del sistema nervioso, encargada de recibir, procesar y transmitir impulsos eléctricos." },
+    { p: "La vaina de mielina permite:", opts: ["Nutrir músculos","Formar sangre","Aumentar la velocidad del impulso nervioso","Almacenar calcio"], ans: 2, exp: "La mielina actúa como aislante eléctrico y permite la conducción saltatoria, aumentando la velocidad del impulso." },
+    { p: "Los músculos esqueléticos permiten mover voluntariamente los huesos mediante tendones. ¿Qué tipo de tejido muscular realiza esta función?", opts: ["Liso","Cardíaco","Estriado esquelético","Visceral"], ans: 2, exp: "El tejido muscular estriado esquelético es de control voluntario y se conecta a los huesos mediante tendones." }
+  ];
+
+  const letras = ['A','B','C','D'];
+  let indice = 0, correctas = 0, respondida = false, nombreAlumno = '';
+  let leaderboard = [];
+
+  function iniciarQuiz() {
+    nombreAlumno = document.getElementById('nombre-input').value.trim();
+    if (!nombreAlumno) { document.getElementById('nombre-input').focus(); return; }
+    indice = 0; correctas = 0; respondida = false;
+    cargarLeaderboard();
+    document.getElementById('inicio').style.display = 'none';
+    document.getElementById('progreso-wrap').style.display = 'block';
+    document.getElementById('tarjeta-quiz').style.display = 'block';
+    mostrarPregunta();
+  }
+
+  function mostrarPregunta() {
+    respondida = false;
+    const q = preguntas[indice];
+    const pct = Math.round((indice / preguntas.length) * 100);
+    document.getElementById('barra').style.width = pct + '%';
+    document.getElementById('progreso-texto').textContent = `Pregunta ${indice + 1} de ${preguntas.length}`;
+    document.getElementById('progreso-pct').textContent = pct + '%';
+    document.getElementById('num-pregunta').textContent = `PREGUNTA ${indice + 1}`;
+    document.getElementById('pregunta-texto').textContent = q.p;
+
+    const opcionesEl = document.getElementById('opciones');
+    opcionesEl.innerHTML = '';
+    q.opts.forEach((op, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'opcion';
+      btn.innerHTML = `<span class="letra">${letras[i]}</span>${op}`;
+      btn.onclick = () => responder(i);
+      opcionesEl.appendChild(btn);
+    });
+
+    document.getElementById('feedback').className = 'feedback';
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('btn-siguiente').className = 'btn-siguiente';
+    document.getElementById('btn-siguiente').textContent = indice < preguntas.length - 1 ? 'Siguiente →' : 'Ver resultados →';
+  }
+
+  function responder(i) {
+    if (respondida) return;
+    respondida = true;
+    const q = preguntas[indice];
+    const btns = document.querySelectorAll('.opcion');
+    btns.forEach(b => b.disabled = true);
+    const fb = document.getElementById('feedback');
+    if (i === q.ans) {
+      correctas++;
+      btns[i].classList.add('correcta');
+      fb.className = 'feedback correcto visible';
+      fb.textContent = '✅ Correcto. ' + q.exp;
+    } else {
+      btns[i].classList.add('incorrecta');
+      btns[q.ans].classList.add('mostrar-correcta');
+      fb.className = 'feedback incorrecto visible';
+      fb.textContent = '❌ Incorrecto. ' + q.exp;
+    }
+    document.getElementById('btn-siguiente').classList.add('visible');
+  }
+
+  function siguiente() {
+    indice++;
+    if (indice < preguntas.length) {
+      mostrarPregunta();
+    } else {
+      mostrarResultado();
+    }
+  }
+
+  function mostrarResultado() {
+    document.getElementById('progreso-wrap').style.display = 'none';
+    document.getElementById('tarjeta-quiz').style.display = 'none';
+    document.getElementById('resultado').classList.add('visible');
+
+    const pct = Math.round((correctas / preguntas.length) * 100);
+    document.getElementById('puntuacion').innerHTML = `${correctas}<span>/${preguntas.length}</span>`;
+    document.getElementById('num-correctas').textContent = correctas;
+    document.getElementById('num-incorrectas').textContent = preguntas.length - correctas;
+    setTimeout(() => { document.getElementById('barra-res').style.width = pct + '%'; }, 100);
+
+    let emoji, titulo, sub;
+    if (pct >= 90) { emoji='🏆'; titulo='¡Sobresaliente!'; sub='Dominas los temas del bimestre'; }
+    else if (pct >= 70) { emoji='🌟'; titulo='¡Muy bien!'; sub='Tienes buenos conocimientos'; }
+    else if (pct >= 50) { emoji='👍'; titulo='¡Bien!'; sub='Sigue repasando para mejorar'; }
+    else { emoji='📚'; titulo='A seguir estudiando'; sub='Repasa los temas y vuelve a intentarlo'; }
+
+    document.getElementById('emoji-res').textContent = emoji;
+    document.getElementById('res-titulo').textContent = titulo;
+    document.getElementById('res-sub').textContent = sub;
+
+    enviarASheets();
+  }
+
+  function enviarASheets() {
+    const status = document.getElementById('status-envio');
+    status.className = 'status-envio enviando visible';
+    status.textContent = '📤 Enviando puntaje a Google Sheets...';
+
+    const entrada = {
+      name: nombreAlumno,
+      score: correctas,
+      total: preguntas.length,
+      date: new Date().toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })
+    };
+
+    fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entrada)
+    }).then(() => {
+      status.className = 'status-envio enviado visible';
+      status.textContent = '✅ Puntaje registrado en Google Sheets';
+      guardarYMostrarLeaderboard(entrada);
+    }).catch(() => {
+      status.className = 'status-envio error visible';
+      status.textContent = '⚠️ Sin conexión a Sheets. Guardado localmente.';
+      guardarYMostrarLeaderboard(entrada);
+    });
+  }
+
+  function guardarYMostrarLeaderboard(entrada) {
+    leaderboard.push(entrada);
+    leaderboard.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+    localStorage.setItem('bio_4to_lb', JSON.stringify(leaderboard));
+    renderLeaderboard(entrada);
+  }
+
+  function cargarLeaderboard() {
+    try { leaderboard = JSON.parse(localStorage.getItem('bio_4to_lb') || '[]'); } catch(e) { leaderboard = []; }
+  }
+
+  function renderLeaderboard(miEntrada) {
+    const lista = document.getElementById('leaderboard-lista');
+    if (!leaderboard.length) { lista.innerHTML = '<div class="lb-vacio">Aún no hay resultados.</div>'; return; }
+    const iconos = ['🥇','🥈','🥉'];
+    lista.innerHTML = leaderboard.slice(0, 10).map((e, i) => {
+      const soyYo = miEntrada && e.name === miEntrada.name && e.score === miEntrada.score;
+      return `<div class="lb-fila">
+        <span class="lb-rank">${i < 3 ? iconos[i] : '#' + (i+1)}</span>
+        <span class="lb-nombre${soyYo ? ' lb-yo' : ''}">${e.name}${soyYo ? ' (tú)' : ''}</span>
+        <span class="lb-puntaje">${e.score}/${e.total}</span>
+        <span class="lb-fecha">${e.date}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function reiniciar() {
+    indice = 0; correctas = 0; respondida = false;
+    document.getElementById('nombre-input').value = '';
+    document.getElementById('resultado').classList.remove('visible');
+    document.getElementById('inicio').style.display = 'block';
+  }
+
+  document.getElementById('nombre-input').addEventListener('keydown', e => { if (e.key === 'Enter') iniciarQuiz(); });
+</script>
+</body>
+</html>
